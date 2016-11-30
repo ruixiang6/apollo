@@ -29,7 +29,7 @@ void test_timeout_cb(void)
 
 	hal_timer_free(test_timer_id);
 	
-	test_timer_id = hal_timer_alloc(1000*1000*12, test_timeout_cb);
+	test_timer_id = hal_timer_alloc(1000*1000*4, test_timeout_cb);
 }
 
 
@@ -42,7 +42,7 @@ OSEL_DECLARE_TASK(TEST_TASK, param)
 
 	hal_timer_init();
 
-	test_timer_id = hal_timer_alloc(1000*1000*12, test_timeout_cb);
+	test_timer_id = hal_timer_alloc(1000*1000*4, test_timeout_cb);
 	
 	while (1)
 	{

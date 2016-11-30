@@ -11,8 +11,6 @@
 TIM_HandleTypeDef timer3;
 static timer_reg_t timer_reg[MAX_TIMER_NUM];
 
-static uint8_t timer_start_flag = 0;
-
 
 void HAL_TIM_Base_MspInit(TIM_HandleTypeDef *htim)
 {
@@ -46,7 +44,7 @@ static void timer_create(TIM_HandleTypeDef *htim, uint16_t arr, uint16_t psc)
 
 static void timer_start(TIM_HandleTypeDef *htim)
 {
-	timer_start_flag = 1;
+	__HAL_TIM_CLEAR_IT(htim, TIM_IT_UPDATE);
 	
 	if (HAL_TIM_Base_Start_IT(htim) != HAL_OK)
 	{
@@ -85,12 +83,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 		//hal_led_toggle(LED0);
 		//hal_uart_send_char(UART_DEBUG, 'c');
 
-		if (timer_start_flag == 1)
-		{
-			timer_start_flag = 0;
-			return;
-		}
-		
 		if (timer_reg[0].used)
 		{
 			if (timer_reg[0].cnt.s.ss_cnt)
