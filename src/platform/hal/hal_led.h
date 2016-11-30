@@ -9,6 +9,7 @@
 
 
 extern void hal_led_ctrl(uint8_t n, uint8_t status);
+extern void hal_led_toggle(uint8_t n);
 extern void hal_led_init(void);
 
 #endif

@@ -9,6 +9,7 @@ OSEL_DECLARE_TASK(TEST_TASK, param);
 osel_task_t *test_task_h;
 osel_event_t *test_event_h;
 
+static uint16_t test_timer_id = 0;
 
 void test_init(void)
 {	
@@ -22,20 +23,35 @@ void test_init(void)
 	DBG_ASSERT(test_event_h != PLAT_NULL);	
 }
 
+void test_timeout_cb(void)
+{
+	DBG_TRACE("test_timeout_cb\r\n");
+
+	hal_timer_free(test_timer_id);
+	
+	test_timer_id = hal_timer_alloc(1000*1000*12, test_timeout_cb);
+}
+
+
 OSEL_DECLARE_TASK(TEST_TASK, param)
 {
     (void)param;
 	osel_event_res_t res;
 
-	DBG_TRACE("TEST_TASK!\r\n");	
+	DBG_TRACE("TEST_TASK!\r\n");
 
+	hal_timer_init();
+
+	test_timer_id = hal_timer_alloc(1000*1000*12, test_timeout_cb);
+	
 	while (1)
 	{
-		hal_led_ctrl(LED0, LED_OFF);
-		hal_led_ctrl(LED1, LED_ON);
+		//hal_led_ctrl(LED0, LED_OFF);
+		//hal_led_ctrl(LED1, LED_ON);
 		OSTimeDly(1000);
-		hal_led_ctrl(LED0, LED_ON);
-		hal_led_ctrl(LED1, LED_OFF);
+		//hal_led_ctrl(LED0, LED_ON);
+		//hal_led_ctrl(LED1, LED_OFF);
 		OSTimeDly(1000);
 	}
+	
 }

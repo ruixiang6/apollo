@@ -31,6 +31,18 @@ void hal_led_ctrl(uint8_t n, uint8_t status)
 }
 
 
+void hal_led_toggle(uint8_t n)
+{
+	if (n == 0)
+	{
+		HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);
+	}
+	else if (n == 1)
+	{
+		HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_1);
+	}
+}
+
 void hal_led_init(void)
 {
 	GPIO_InitTypeDef GPIO_Initure;
