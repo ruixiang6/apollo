@@ -9,6 +9,8 @@
 
 
 TIM_HandleTypeDef timer3;
+TIM_HandleTypeDef timer4;
+
 static timer_reg_t timer_reg[MAX_TIMER_NUM];
 
 
@@ -19,14 +21,25 @@ void HAL_TIM_Base_MspInit(TIM_HandleTypeDef *htim)
 		__HAL_RCC_TIM3_CLK_ENABLE();            //使能TIM3时钟
 		HAL_NVIC_SetPriority(TIM3_IRQn, 1, 3);    //设置中断优先级，抢占优先级1，子优先级3
 		HAL_NVIC_EnableIRQ(TIM3_IRQn);          //开启ITM3中断   
-		//HAL_NVIC_DisableIRQ(TIM3_IRQn);          //开启ITM3中断   
-	}  
+	}
+    else if (htim->Instance == TIM4)
+	{
+		__HAL_RCC_TIM4_CLK_ENABLE();            //使能TIM3时钟
+		HAL_NVIC_SetPriority(TIM4_IRQn, 1, 4);    //设置中断优先级，抢占优先级1，子优先级4
+		HAL_NVIC_EnableIRQ(TIM4_IRQn);          //开启ITM3中断   
+	}	
 }
 
 
 static void timer_create(TIM_HandleTypeDef *htim, uint16_t arr, uint16_t psc)
 {
-	htim->Instance = TIM3;
+	if (htim == (TIM_HandleTypeDef *)&timer3)
+		htim->Instance = TIM3;
+	else if (htim == (TIM_HandleTypeDef *)&timer4)
+		htim->Instance = TIM4;
+	else
+		DBG_ERROR("timer_create error1\n");
+	
 	htim->Init.Period = arr;
 	htim->Init.Prescaler = psc;
 	htim->Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
@@ -35,7 +48,7 @@ static void timer_create(TIM_HandleTypeDef *htim, uint16_t arr, uint16_t psc)
 
 	if (HAL_TIM_Base_Init(htim) != HAL_OK)
 	{
-		DBG_ERROR("timer_create error\n");
+		DBG_ERROR("timer_create error2\n");
 	}
 	
 	return;
@@ -69,6 +82,12 @@ static void timer_stop(TIM_HandleTypeDef *htim)
 void TIM3_IRQHandler(void)
 {
 	HAL_TIM_IRQHandler(&timer3);
+}
+
+
+void TIM4_IRQHandler(void)
+{
+	HAL_TIM_IRQHandler(&timer4);
 }
 
 
@@ -117,6 +136,45 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 			timer_start(&timer3);
 		}
 	}
+	else if (htim == (TIM_HandleTypeDef *)&timer4) 
+	{
+		//hal_led_toggle(LED0);
+		//hal_uart_send_char(UART_DEBUG, 'c');
+
+		if (timer_reg[1].used)
+		{
+			if (timer_reg[1].cnt.s.ss_cnt)
+			{
+				timer_create(&timer4, TIMER_HARDWARE_ARR_5S-1, TIMER_HARDWARE_PSC_10KHZ-1);
+				timer_reg[1].cnt.s.ss_cnt--;			
+			}
+			else 
+			{
+				if (timer_reg[1].cnt.s.hs_cnt)
+				{
+					if (timer_reg[1].cnt.s.hs_cnt <= TIMER_HARDWARE_MIN_US)
+						arr = 1;
+					else
+						arr = timer_reg[1].cnt.s.hs_cnt / TIMER_HARDWARE_MIN_US;
+
+					timer_create(&timer4, arr-1, TIMER_HARDWARE_PSC_10KHZ-1);
+					timer_reg[1].cnt.s.hs_cnt = 0;
+				}
+				else
+				{
+					timer_reg[1].used = PLAT_FALSE;
+					if (timer_reg[1].func)
+					{
+						timer_reg[1].func();
+					}			
+					
+					return;
+				}
+			}
+			
+			timer_start(&timer4);
+		}
+	}
 }
 
 
@@ -161,9 +219,31 @@ uint8_t hal_timer_alloc(uint32_t time_us, fpv_t func)
 		}
 
 		timer_start(&timer3);
+	}
+	else if (id == 1)
+	{
+		if (timer_reg[id].cnt.s.ss_cnt == 0)
+		{
+			if (timer_reg[id].cnt.s.hs_cnt <= TIMER_HARDWARE_MIN_US)
+				arr = 1;
+			else
+				arr = timer_reg[id].cnt.s.hs_cnt / TIMER_HARDWARE_MIN_US;
+						
+			timer_create(&timer4, arr-1, TIMER_HARDWARE_PSC_10KHZ-1);
+			timer_reg[id].cnt.s.hs_cnt = 0;
+		}
+		else
+		{			
+			timer_create(&timer4, TIMER_HARDWARE_ARR_5S-1, TIMER_HARDWARE_PSC_10KHZ-1);
+			timer_reg[id].cnt.s.ss_cnt--;
+		}
+
+		timer_start(&timer4);
 	}	
+
 	else
 	{
+		DBG_ERROR("hal_timer_alloc error\n");
 		return PLAT_FALSE;
 	}
 	
@@ -183,6 +263,13 @@ void hal_timer_free(uint8_t timer_id)
 	if (id == 0)
 	{
 		timer_stop(&timer3);
+
+		timer_reg[id].used = PLAT_FALSE;		
+		timer_reg[id].func = PLAT_NULL;
+	}
+	else if (id == 1)
+	{
+		timer_stop(&timer4);
 
 		timer_reg[id].used = PLAT_FALSE;		
 		timer_reg[id].func = PLAT_NULL;

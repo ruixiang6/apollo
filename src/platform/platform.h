@@ -51,6 +51,7 @@ typedef void				(*fppv_t)(void *);   /* function pointer void and parameter void
 #include "hal_uart.h"
 #include "hal_mem.h"
 #include "hal_timer.h"
+#include "hal_lcd.h"
 
 
 #include <debug.h>

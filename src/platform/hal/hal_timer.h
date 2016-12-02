@@ -4,7 +4,7 @@
 #include "platform.h"
 
 
-#define MAX_TIMER_NUM   1
+#define MAX_TIMER_NUM   2
 
 #define TIMER_HARDWARE_PSC_10KHZ	10800
 #define TIMER_HARDWARE_ARR_5S		50000

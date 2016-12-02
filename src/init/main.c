@@ -18,6 +18,10 @@ void main(void)
 	hal_led_init();
 	
 	hal_sdram_init();
+
+	hal_timer_init();
+
+	hal_lcd_init();
 	
 	hal_uart_init(UART_DEBUG, 115200);
 	
