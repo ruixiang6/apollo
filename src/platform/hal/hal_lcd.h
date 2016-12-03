@@ -11,9 +11,6 @@
 #define LCD_PIXEL_FORMAT_AL44           0X06     
 #define LCD_PIXEL_FORMAT_AL88           0X07      
 
-///////////////////////////////////////////////////////////////////////
-//用户修改配置部分:
-
 //定义颜色像素格式,一般用RGB565
 #define LCD_PIXFORMAT				LCD_PIXEL_FORMAT_RGB565	
 //定义默认背景层颜色
@@ -21,50 +18,34 @@
 //LCD帧缓冲区首地址,这里定义在SDRAM里面.
 #define LCD_FRAME_BUF_ADDR			0XC0000000  
 
-#define LCD_LED(n)              (n?HAL_GPIO_WritePin(GPIOB,GPIO_PIN_5,GPIO_PIN_SET):HAL_GPIO_WritePin(GPIOB,GPIO_PIN_5,GPIO_PIN_RESET))   //LCD背光PD13              //LCD背光PD13
-
-
-//扫描方向定义
-#define L2R_U2D  0 		//从左到右,从上到下
-#define L2R_D2U  1 		//从左到右,从下到上
-#define R2L_U2D  2 		//从右到左,从上到下
-#define R2L_D2U  3 		//从右到左,从下到上
-
-#define U2D_L2R  4 		//从上到下,从左到右
-#define U2D_R2L  5 		//从上到下,从右到左
-#define D2U_L2R  6 		//从下到上,从左到右
-#define D2U_R2L  7		//从下到上,从右到左	 
-
-#define DFT_SCAN_DIR  L2R_U2D  //默认的扫描方向
 
 //画笔颜色
-#define WHITE         	 0xFFFF
-#define BLACK         	 0x0000	  
-#define BLUE         	 0x001F  
-#define BRED             0XF81F
-#define GRED 			 0XFFE0
-#define GBLUE			 0X07FF
-#define RED           	 0xF800
-#define MAGENTA       	 0xF81F
-#define GREEN         	 0x07E0
-#define CYAN          	 0x7FFF
-#define YELLOW        	 0xFFE0
-#define BROWN 			 0XBC40 //棕色
-#define BRRED 			 0XFC07 //棕红色
-#define GRAY  			 0X8430 //灰色
+#define COLOR_WHITE         	 0xFFFF
+#define COLOR_BLACK         	 0x0000	  
+#define COLOR_BLUE         	 	 0x001F  
+#define COLOR_BRED             	 0XF81F
+#define COLOR_GRED 			 	 0XFFE0
+#define COLOR_GBLUE				 0X07FF
+#define COLOR_RED           	 0xF800
+#define COLOR_MAGENTA       	 0xF81F
+#define COLOR_GREEN         	 0x07E0
+#define COLOR_CYAN          	 0x7FFF
+#define COLOR_YELLOW        	 0xFFE0
+#define COLOR_BROWN 			 0XBC40 //棕色
+#define COLOR_BRRED 			 0XFC07 //棕红色
+#define COLOR_GRAY  			 0X8430 //灰色
 //GUI颜色
 
-#define DARKBLUE      	 0X01CF	//深蓝色
-#define LIGHTBLUE      	 0X7D7C	//浅蓝色  
-#define GRAYBLUE       	 0X5458 //灰蓝色
+#define COLOR_DARKBLUE      	 0X01CF	//深蓝色
+#define COLOR_LIGHTBLUE      	 0X7D7C	//浅蓝色  
+#define COLOR_GRAYBLUE       	 0X5458 //灰蓝色
 //以上三色为PANEL的颜色 
  
-#define LIGHTGREEN     	 0X841F //浅绿色
-//#define LIGHTGRAY        0XEF5B //浅灰色(PANNEL)
-#define LGRAY 			 0XC618 //浅灰色(PANNEL),窗体背景色
+#define COLOR_LIGHTGREEN     	 0X841F //浅绿色
+#define COLOR_LGRAY 			 0XC618 //浅灰色(PANNEL),窗体背景色
 
-#define LGRAYBLUE        0XA651 //浅灰蓝色(中间层颜色)
-#define LBBLUE           0X2B12 //浅棕蓝色(选择条目的反色)
+#define COLOR_LGRAYBLUE          0XA651 //浅灰蓝色(中间层颜色)
+#define COLOR_LBBLUE             0X2B12 //浅棕蓝色(选择条目的反色)
 
 
 typedef struct _ltdc_dev_t {							 
@@ -96,11 +77,25 @@ typedef struct _lcd_dev_t {
 
 
 
-extern uint32_t POINT_COLOR;
+extern uint32_t point_color;
 extern lcd_dev_t lcddev;
 
-extern void LCD_Clear(uint32_t color);
-extern void LCD_ShowString(uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint8_t size, uint8_t *p);
+
+extern void hal_lcd_led(uint8_t status);
+extern void hal_lcd_display_dir(uint8_t dir);
+extern uint32_t hal_lcd_read_point(uint16_t x, uint16_t y);
+extern void hal_lcd_draw_point(uint16_t x, uint16_t y);
+extern void hal_lcd_draw_color_point(uint16_t x, uint16_t y, uint32_t color);
+extern void hal_lcd_clear(uint32_t color);
+extern void hal_lcd_fill(uint16_t sx, uint16_t sy, uint16_t ex, uint16_t ey, uint16_t color);
+extern void hal_lcd_color_fill(uint16_t sx, uint16_t sy, uint16_t ex, uint16_t ey, uint16_t *color);
+extern void hal_lcd_draw_line(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2);
+extern void hal_lcd_draw_rect(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2);
+extern void hal_lcd_draw_circle(uint16_t x0, uint16_t y0, uint8_t r);
+extern void hal_lcd_show_char(uint16_t x, uint16_t y, uint8_t num, uint8_t size, uint8_t mode);
+extern void hal_lcd_show_num(uint16_t x, uint16_t y, uint32_t num, uint8_t len, uint8_t size);
+extern void hal_lcd_show_xnum(uint16_t x, uint16_t y, uint32_t num, uint8_t len, uint8_t size, uint8_t mode);
+extern void hal_lcd_show_string(uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint8_t size, uint8_t *p);
 extern void hal_lcd_init(void);
 
 #endif

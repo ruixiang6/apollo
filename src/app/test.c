@@ -46,57 +46,57 @@ OSEL_DECLARE_TASK(TEST_TASK, param)
 
 	//test_timer_id = hal_timer_alloc(1000*1000*4, test_timeout_cb);
 
-	POINT_COLOR = RED; 
+	point_color = COLOR_RED; 
 	sprintf((char*)lcd_id, "LCD ID:%04X", lcddev.id);//将LCD ID打印到lcd_id数组。	
 
     while (1)
     {
         switch (x) {
 		case 0:
-			LCD_Clear(WHITE);
+			hal_lcd_clear(COLOR_WHITE);
 			break;
 		case 1:
-			LCD_Clear(BLACK);
+			hal_lcd_clear(COLOR_BLACK);
 			break;
 		case 2:
-			LCD_Clear(BLUE);
+			hal_lcd_clear(COLOR_BLUE);
 			break;
 		case 3:
-			LCD_Clear(RED);
+			hal_lcd_clear(COLOR_RED);
 			break;
 		case 4:
-			LCD_Clear(MAGENTA);
+			hal_lcd_clear(COLOR_MAGENTA);
 			break;
 		case 5:
-			LCD_Clear(GREEN);
+			hal_lcd_clear(COLOR_GREEN);
 			break;
 		case 6:
-			LCD_Clear(CYAN);
+			hal_lcd_clear(COLOR_CYAN);
 			break; 
 		case 7:
-			LCD_Clear(YELLOW);
+			hal_lcd_clear(COLOR_YELLOW);
 			break;
 		case 8:
-			LCD_Clear(BRRED);
+			hal_lcd_clear(COLOR_BRRED);
 			break;
 		case 9:
-			LCD_Clear(GRAY);
+			hal_lcd_clear(COLOR_GRAY);
 			break;
 		case 10:
-			LCD_Clear(LGRAY);
+			hal_lcd_clear(COLOR_LGRAY);
 			break;
 		case 11:
-			LCD_Clear(BROWN);
+			hal_lcd_clear(COLOR_BROWN);
 			break;
 		}
 		
-		POINT_COLOR=RED;
+		point_color = COLOR_RED;
 		
-		LCD_ShowString(10, 40, 260, 32, 32, "Apollo STM32F4/F7"); 	
-		LCD_ShowString(10, 80, 240, 24, 24, "LTDC TEST");
-		LCD_ShowString(10, 110, 240, 16, 16, "ATOM@ALIENTEK");
- 		LCD_ShowString(10, 130, 240, 16, 16, lcd_id);		//显示LCD ID	      					 
-		LCD_ShowString(10, 150, 240, 12, 12, "2016/7/12");	
+		hal_lcd_show_string(10, 40, 260, 32, 32, "China ShangHai"); 	
+		hal_lcd_show_string(10, 80, 240, 24, 24, "JiaDing");
+		hal_lcd_show_string(10, 110, 240, 16, 16, "WSND");
+ 		hal_lcd_show_string(10, 130, 240, 16, 16, lcd_id);		//显示LCD ID	      					 
+		hal_lcd_show_string(10, 150, 240, 12, 12, "2016/12/03");	
 		
 	    x++;
 		
@@ -108,17 +108,4 @@ OSEL_DECLARE_TASK(TEST_TASK, param)
 		
 		OSTimeDly(2000);	
 	}
-
-	/*
-	while (1)
-	{
-		//hal_led_ctrl(LED0, LED_OFF);
-		//hal_led_ctrl(LED1, LED_ON);
-		OSTimeDly(1000);
-		//hal_led_ctrl(LED0, LED_ON);
-		//hal_led_ctrl(LED1, LED_OFF);
-		OSTimeDly(1000);
-	}
-	*/
-	
 }
