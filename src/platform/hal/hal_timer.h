@@ -38,6 +38,9 @@ typedef struct
 }timer_reg_t;
 #pragma pack()
 
+
+extern void delay_us(uint16_t us);
+extern void delay_ms(uint16_t ms);
 extern uint8_t hal_timer_alloc(uint32_t time_us, fpv_t func);
 extern void hal_timer_free(uint8_t timer_id);
 extern void hal_timer_init(void);

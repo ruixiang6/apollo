@@ -2,7 +2,7 @@
 #include "stm32f7xx_hal.h"
 
 #include "platform.h"
-#include "hal_mem.h"
+#include "hal_flash.h"
  
 
 uint32_t STMFLASH_ReadWord(uint32_t faddr)

@@ -49,9 +49,13 @@ typedef void				(*fppv_t)(void *);   /* function pointer void and parameter void
 #include "hal_led.h"
 #include "hal_sdram.h"
 #include "hal_uart.h"
-#include "hal_mem.h"
+#include "hal_flash.h"
 #include "hal_timer.h"
 #include "hal_lcd.h"
+#include "hal_key.h"
+#include "hal_i2c.h"
+#include "hal_eeprom.h"
+#include "hal_camera.h"
 
 
 #include <debug.h>

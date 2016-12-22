@@ -157,11 +157,12 @@ void HardFault_Handler(void)
 
 
 void MemManage_Handler(void)
-{
-	while (1)
-	{
-		
-	}
+{ 
+	printf("Mem Access Error!!\r\n"); 	//输出错误信息
+	delay_ms(1000);	
+	printf("Soft Reseting...\r\n");		//提示软件重启
+	delay_ms(1000);	
+	NVIC_SystemReset();					//软复位
 }
 
 
@@ -208,9 +209,49 @@ void SysTick_Handler(void)
 }
 */
 
+
+uint8_t MPU_Set_Protection(uint32_t baseaddr, uint32_t size, uint32_t rnum, uint32_t ap)
+{
+	MPU_Region_InitTypeDef MPU_Initure;
+	
+	HAL_MPU_Disable();								        //配置MPU之前先关闭MPU,配置完成以后在使能MPU
+
+	MPU_Initure.Enable = MPU_REGION_ENABLE;			        //使能该保护区域 
+	MPU_Initure.Number = rnum;			                    //设置保护区域
+	MPU_Initure.BaseAddress = baseaddr;	                    //设置基址
+	MPU_Initure.Size = size;				                    //设置保护区域大小
+	MPU_Initure.SubRegionDisable = 0X00;                      //禁止子区域
+	MPU_Initure.TypeExtField = MPU_TEX_LEVEL0;                //设置类型扩展域为level0
+	MPU_Initure.AccessPermission = (uint8_t)ap;		            //设置访问权限,
+	MPU_Initure.DisableExec = MPU_INSTRUCTION_ACCESS_ENABLE;	//允许指令访问(允许读取指令)
+	MPU_Initure.IsShareable = MPU_ACCESS_NOT_SHAREABLE;       //禁止共用
+	MPU_Initure.IsCacheable = MPU_ACCESS_CACHEABLE;       //允许cache  
+	MPU_Initure.IsBufferable = MPU_ACCESS_BUFFERABLE;         //允许缓冲
+	HAL_MPU_ConfigRegion(&MPU_Initure);                     //配置MPU
+	HAL_MPU_Enable(MPU_PRIVILEGED_DEFAULT);			        //开启MPU
+
+	return 0;
+}
+
+
+//设置需要保护的存储块
+//必须对部分存储区域进行MPU保护,否则可能导致程序运行异常
+//比如MCU屏不显示,摄像头采集数据出错等等问题...
+void MPU_Memory_Protection(void)
+{
+	MPU_Set_Protection(0x60000000,MPU_REGION_SIZE_64MB,MPU_REGION_NUMBER0,MPU_REGION_FULL_ACCESS);	//保护MCU LCD屏所在的FMC区域,,共64M字节
+	MPU_Set_Protection(0x20000000,MPU_REGION_SIZE_512KB,MPU_REGION_NUMBER1,MPU_REGION_FULL_ACCESS);		//保护整个内部SRAM,包括SRAM1,SRAM2和DTCM,共512K字节
+	MPU_Set_Protection(0XC0000000,MPU_REGION_SIZE_32MB,MPU_REGION_NUMBER2,MPU_REGION_FULL_ACCESS);	//保护SDRAM区域,共32M字节
+	MPU_Set_Protection(0X80000000,MPU_REGION_SIZE_256MB,MPU_REGION_NUMBER3,MPU_REGION_FULL_ACCESS);	//保护整个NAND FLASH区域,共256M字节
+}
+
+
+
 void hal_broad_init(void)
 {
 	Cache_Enable();
+	
+	MPU_Memory_Protection();
 
 	HAL_Init();
 

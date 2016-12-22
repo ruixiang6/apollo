@@ -14,6 +14,44 @@ TIM_HandleTypeDef timer4;
 static timer_reg_t timer_reg[MAX_TIMER_NUM];
 
 
+
+
+void delay_us(uint16_t us)
+{		
+	uint32_t ticks;
+	uint32_t told, tnow, tcnt = 0;
+	uint32_t reload = SysTick->LOAD;    	 
+
+	ticks = us * 216; 
+	told = SysTick->VAL;
+	
+	while (1)
+	{
+		tnow = SysTick->VAL;	
+		if (tnow != told)
+		{	    
+			if (tnow < told)
+				tcnt += told - tnow;
+			else 
+				tcnt += reload - tnow + told;	    
+			told = tnow;
+
+			if (tcnt >= ticks)
+				break;
+		}  
+	}
+}
+
+
+void delay_ms(uint16_t ms)
+{
+	uint16_t i;
+	
+	for (i = 0; i < ms; i++) 
+		delay_us(1000);
+}
+
+
 void HAL_TIM_Base_MspInit(TIM_HandleTypeDef *htim)
 {
     if (htim->Instance == TIM3)

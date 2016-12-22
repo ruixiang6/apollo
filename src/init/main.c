@@ -22,6 +22,10 @@ void main(void)
 	hal_timer_init();
 
 	hal_lcd_init();
+
+	hal_i2c_init();
+
+	hal_key_init();
 	
 	hal_uart_init(UART_DEBUG, 115200);
 	
