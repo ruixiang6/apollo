@@ -24,18 +24,10 @@ const uint8_t *EFFECTS_TBL[7]={"Normal","Cool","Warm","B&W","Yellowish ","Invers
 
 extern void (*dcmi_rx_callback)(void);//DCMI DMA接收回调函数
 
-void test_init(void)
-{	
-	/*创建 TEST 任务 */   
-	test_task_h = osel_task_create(TEST_TASK, 
-								NULL, 
-								TEST_TASK_STK_SIZE, 
-								TEST_TASK_PRIO);
-	DBG_ASSERT(test_task_h != PLAT_NULL);
-	test_event_h = osel_event_create(OSEL_EVENT_TYPE_SEM, 0);
-	DBG_ASSERT(test_event_h != PLAT_NULL);	
-}
 
+
+
+//定时器测试//////////////////////////////////////////////////////////////////////////////
 void test_timeout_cb(void)
 {
 	DBG_TRACE("test_timeout_cb %d\r\n", test_timer_id);
@@ -45,11 +37,88 @@ void test_timeout_cb(void)
 	test_timer_id = hal_timer_alloc(1000*1000*4, test_timeout_cb);
 }
 
+void timer_test(void)
+{
+	test_timer_id = hal_timer_alloc(1000*1000*4, test_timeout_cb);
+}
+////////////////////////////////////////////////////////////////////////////////////////
 
 
+//LCD LED测试//////////////////////////////////////////////////////////////////////////////
+void lcd_led_test(void)
+{
+	uint8_t key = 0;
+	uint8_t x = 0;
+	uint8_t lcd_id[12];
+
+	point_color = COLOR_RED; 
+	sprintf((char*)lcd_id, "LCD ID:%04X", lcddev.id);//将LCD ID打印到lcd_id数组。
+	
+    while (1)
+    {
+        switch (x) {
+		case 0:
+			hal_lcd_clear(COLOR_WHITE);
+			break;
+		case 1:
+			hal_lcd_clear(COLOR_BLACK);
+			break;
+		case 2:
+			hal_lcd_clear(COLOR_BLUE);
+			break;
+		case 3:
+			hal_lcd_clear(COLOR_RED);
+			break;
+		case 4:
+			hal_lcd_clear(COLOR_MAGENTA);
+			break;
+		case 5:
+			hal_lcd_clear(COLOR_GREEN);
+			break;
+		case 6:
+			hal_lcd_clear(COLOR_CYAN);
+			break; 
+		case 7:
+			hal_lcd_clear(COLOR_YELLOW);
+			break;
+		case 8:
+			hal_lcd_clear(COLOR_BRRED);
+			break;
+		case 9:
+			hal_lcd_clear(COLOR_GRAY);
+			break;
+		case 10:
+			hal_lcd_clear(COLOR_LGRAY);
+			break;
+		case 11:
+			hal_lcd_clear(COLOR_BROWN);
+			break;
+		}
+		
+		point_color = COLOR_RED;
+		
+		hal_lcd_show_string(10, 40, 260, 32, 32, "China ShangHai"); 	
+		hal_lcd_show_string(10, 80, 240, 24, 24, "JiaDing");
+		hal_lcd_show_string(10, 110, 240, 16, 16, "WSND");
+ 		hal_lcd_show_string(10, 130, 240, 16, 16, lcd_id);		//显示LCD ID	      					 
+		hal_lcd_show_string(10, 150, 240, 12, 12, "2016/12/22");	
+		
+	    x++;
+		
+		if (x == 12)
+			x = 0;
+		
+		hal_led_toggle(LED0);
+		hal_led_toggle(LED1);
+		
+		OSTimeDly(2000);	
+	}
+
+}
+////////////////////////////////////////////////////////////////////////////////////////
 
 
-
+//摄像头测试//////////////////////////////////////////////////////////////////////////////
 //RGB屏数据接收回调函数
 void rgblcd_dcmi_rx_callback(void)
 {  
@@ -194,37 +263,15 @@ void rgb565_test(void)
 	}    
 } 
 
-
-
-
-
-
-
-
-
-
-
-OSEL_DECLARE_TASK(TEST_TASK, param)
+void video_test(void)
 {
-    (void)param;
-	osel_event_res_t res;
-
-	uint8_t key = 0;
-	uint8_t x = 0;
-	uint8_t lcd_id[12];
-
-
-	DBG_TRACE("TEST_TASK!\r\n");
-
-	//test_timer_id = hal_timer_alloc(1000*1000*4, test_timeout_cb);
-
 	point_color = COLOR_RED; 
-	sprintf((char*)lcd_id, "LCD ID:%04X", lcddev.id);//将LCD ID打印到lcd_id数组。
 	
 	hal_lcd_show_string(30,50,200,16,16,"Apollo STM32F4/F7");	
 	hal_lcd_show_string(30,70,200,16,16,"OV5640 TEST");	
 	hal_lcd_show_string(30,90,200,16,16,"ATOM@ALIENTEK");
-	hal_lcd_show_string(30,110,200,16,16,"2016/12/22");  	 
+	hal_lcd_show_string(30,110,200,16,16,"2016/12/22"); 
+	
 	while (OV5640_Init())//初始化OV5640
 	{
 		hal_lcd_show_string(30,130,240,16,16,"OV5640 ERR");
@@ -236,66 +283,169 @@ OSEL_DECLARE_TASK(TEST_TASK, param)
     hal_lcd_show_string(30,130,200,16,16,"OV5640 OK");  
 	
 	rgb565_test(); 
+}
+////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+//SD测试//////////////////////////////////////////////////////////////////////////////
+//通过串口打印SD卡相关信息
+void show_sdcard_info(void)
+{
+	switch (SDCardInfo.CardType) {
+	case STD_CAPACITY_SD_CARD_V1_1:
+		DBG_PRINTF("Card Type:SDSC V1.1\r\n");break;
+	case STD_CAPACITY_SD_CARD_V2_0:
+		DBG_PRINTF("Card Type:SDSC V2.0\r\n");break;
+	case HIGH_CAPACITY_SD_CARD:
+		DBG_PRINTF("Card Type:SDHC V2.0\r\n");break;
+	case MULTIMEDIA_CARD:
+		DBG_PRINTF("Card Type:MMC Card\r\n");break;
+	}
+	
+  	DBG_PRINTF("Card ManufacturerID:%d\r\n", SDCardInfo.SD_cid.ManufacturerID);	//制造商ID
+ 	DBG_PRINTF("Card RCA:%d\r\n", SDCardInfo.RCA);								//卡相对地址
+	DBG_PRINTF("Card Capacity:%d MB\r\n",(uint32_t)(SDCardInfo.CardCapacity>>20));	//显示容量
+ 	DBG_PRINTF("Card BlockSize:%d\r\n\r\n", SDCardInfo.CardBlockSize);			//显示块大小
+}
+
+//测试SD卡的读取
+//从secaddr地址开始,读取seccnt个扇区的数据
+//secaddr:扇区地址
+//seccnt:扇区数
+void sd_test_read(uint32_t secaddr, uint32_t seccnt)
+{
+	uint32_t i; 
+	uint8_t *buf; 
+	uint8_t sta = 0;
+	
+	buf = heap_alloc(seccnt*512, 0);	//申请内存
+	
+	sta = hal_sdmmc_read_disk(buf, secaddr, seccnt);//读取secaddr扇区开始的内容
+	if (sta == 0)						
+	{	 
+		DBG_PRINTF("SECTOR %d DATA:\r\n", secaddr);
+		for (i = 0; i < seccnt*512; i++)
+			DBG_PRINTF("%x ", buf[i]);//打印secaddr开始的扇区数据    	   
+		DBG_PRINTF("\r\nDATA ENDED\r\n"); 
+	}
+	else 
+		DBG_PRINTF("err:%d\r\n",sta);
+
+	//myfree(SRAMEX,buf);	//释放内存	   
+}
+
+//测试SD卡的写入(慎用,最好写全是0XFF的扇区,否则可能损坏SD卡.)
+//从secaddr地址开始,写入seccnt个扇区的数据
+//secaddr:扇区地址
+//seccnt:扇区数
+void sd_test_write(uint32_t secaddr, uint32_t seccnt)
+{
+	uint32_t i;
+	uint8_t *buf; 
+	uint8_t sta = 0; 
+	
+	buf = heap_alloc(seccnt*512, 0);	//申请内存
+	
+	for (i = 0; i < seccnt*512; i++) 
+		buf[i]=i*3; 		//初始化写入的数据,是3的倍数.
+	sta = hal_sdmmc_write_disk(buf,secaddr,seccnt);		//从secaddr扇区开始写入seccnt个扇区内容
+
+	if (sta == 0) 
+		DBG_PRINTF("Write over!\r\n");		  
+    else 
+		DBG_PRINTF("err:%d\r\n",sta);
+	
+	//myfree(SRAMEX,buf);					//释放内存	   
+}
+
+void sd_test(void)
+{
+	uint16_t i;
+	uint8_t *buf;
+	uint32_t sd_size;
+	uint8_t wbuf[512];
+	uint8_t key;
+	
+	point_color = COLOR_RED; 
+
+	hal_lcd_show_string(30,50,200,16,16,"Aopllo STM32F4/F7");	
+	hal_lcd_show_string(30,70,200,16,16,"SD CARD TEST");	
+	hal_lcd_show_string(30,90,200,16,16,"ATOM@ALIENTEK");
+	hal_lcd_show_string(30,110,200,16,16,"2016/7/15");   
+	hal_lcd_show_string(30,130,200,16,16,"KEY0:Read Sector 0");	   
+
+	while(hal_sdmmc_init())//检测不到SD卡
+	{
+		hal_lcd_show_string(30,150,200,16,16,"SD Card Error!");
+		delay_ms(500);					
+		hal_lcd_show_string(30,150,200,16,16,"Please Check! ");
+		delay_ms(500);
+	}
+	
+	show_sdcard_info();	//打印SD卡相关信息
+ 	point_color = COLOR_BLUE;	//设置字体为蓝色 
+ 	
+	//检测SD卡成功 											    
+	hal_lcd_show_string(30,150,200,16,16,"SD Card OK    ");
+	hal_lcd_show_string(30,170,200,16,16,"SD Card Size:     MB");
+	hal_lcd_show_num(30+13*8,170,SDCardInfo.CardCapacity>>20,5,16);//显示SD卡容量	
+
+	for (i = 0; i < 512; i++)
+		wbuf[i] = i;
+
+	hal_sdmmc_write_disk(wbuf, 0 , 1);
+
+	DBG_PRINTF("hal_sdmmc_write_disk ok\n");
 		
-/*
     while (1)
     {
-        switch (x) {
-		case 0:
-			hal_lcd_clear(COLOR_WHITE);
-			break;
-		case 1:
-			hal_lcd_clear(COLOR_BLACK);
-			break;
-		case 2:
-			hal_lcd_clear(COLOR_BLUE);
-			break;
-		case 3:
-			hal_lcd_clear(COLOR_RED);
-			break;
-		case 4:
-			hal_lcd_clear(COLOR_MAGENTA);
-			break;
-		case 5:
-			hal_lcd_clear(COLOR_GREEN);
-			break;
-		case 6:
-			hal_lcd_clear(COLOR_CYAN);
-			break; 
-		case 7:
-			hal_lcd_clear(COLOR_YELLOW);
-			break;
-		case 8:
-			hal_lcd_clear(COLOR_BRRED);
-			break;
-		case 9:
-			hal_lcd_clear(COLOR_GRAY);
-			break;
-		case 10:
-			hal_lcd_clear(COLOR_LGRAY);
-			break;
-		case 11:
-			hal_lcd_clear(COLOR_BROWN);
-			break;
-		}
-		
-		point_color = COLOR_RED;
-		
-		hal_lcd_show_string(10, 40, 260, 32, 32, "China ShangHai"); 	
-		hal_lcd_show_string(10, 80, 240, 24, 24, "JiaDing");
-		hal_lcd_show_string(10, 110, 240, 16, 16, "WSND");
- 		hal_lcd_show_string(10, 130, 240, 16, 16, lcd_id);		//显示LCD ID	      					 
-		hal_lcd_show_string(10, 150, 240, 12, 12, "2016/12/22");	
-		
-	    x++;
-		
-		if (x == 12)
-			x = 0;
-		
-		hal_led_toggle(LED0);
-		hal_led_toggle(LED1);
-		
-		OSTimeDly(2000);	
-	}
-*/	
+		key = hal_key_scan(0);
+		if (key == KEY0_PRES)//KEY0按下了
+		{
+			buf = heap_alloc(512, 0);		//申请内存
+			if (hal_sdmmc_read_disk(buf, 0, 1) == 0)	//读取0扇区的内容
+			{	
+				hal_lcd_show_string(30,190,200,16,16,"USART1 Sending Data...");
+				DBG_PRINTF("SECTOR 0 DATA:\r\n");
+				for (sd_size = 0; sd_size < 512; sd_size++)
+					DBG_PRINTF("%x ",buf[sd_size]);//打印0扇区数据    	   
+				DBG_PRINTF("\r\nDATA ENDED\r\n");
+				hal_lcd_show_string(30,190,200,16,16,"USART1 Send Data Over!");
+			}
+			
+			//myfree(0,buf);//释放内存	   
+		}  
+
+    }
 }
+
+
+////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+OSEL_DECLARE_TASK(TEST_TASK, param)
+{
+    (void)param;
+	osel_event_res_t res;
+
+	DBG_TRACE("TEST_TASK!\r\n");
+	
+
+}
+
+
+void test_init(void)
+{	
+	/*创建 TEST 任务 */   
+	test_task_h = osel_task_create(TEST_TASK, 
+								NULL, 
+								TEST_TASK_STK_SIZE, 
+								TEST_TASK_PRIO);
+	DBG_ASSERT(test_task_h != PLAT_NULL);
+	test_event_h = osel_event_create(OSEL_EVENT_TYPE_SEM, 0);
+	DBG_ASSERT(test_event_h != PLAT_NULL);	
+}
+

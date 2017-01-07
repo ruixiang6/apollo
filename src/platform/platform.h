@@ -56,6 +56,7 @@ typedef void				(*fppv_t)(void *);   /* function pointer void and parameter void
 #include "hal_i2c.h"
 #include "hal_eeprom.h"
 #include "hal_camera.h"
+#include "hal_sdmmc.h"
 
 
 #include <debug.h>
