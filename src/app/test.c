@@ -310,55 +310,6 @@ void show_sdcard_info(void)
  	DBG_PRINTF("Card BlockSize:%d\r\n\r\n", SDCardInfo.CardBlockSize);			//显示块大小
 }
 
-//测试SD卡的读取
-//从secaddr地址开始,读取seccnt个扇区的数据
-//secaddr:扇区地址
-//seccnt:扇区数
-void sd_test_read(uint32_t secaddr, uint32_t seccnt)
-{
-	uint32_t i; 
-	uint8_t *buf; 
-	uint8_t sta = 0;
-	
-	buf = heap_alloc(seccnt*512, 0);	//申请内存
-	
-	sta = hal_sdmmc_read_disk(buf, secaddr, seccnt);//读取secaddr扇区开始的内容
-	if (sta == 0)						
-	{	 
-		DBG_PRINTF("SECTOR %d DATA:\r\n", secaddr);
-		for (i = 0; i < seccnt*512; i++)
-			DBG_PRINTF("%x ", buf[i]);//打印secaddr开始的扇区数据    	   
-		DBG_PRINTF("\r\nDATA ENDED\r\n"); 
-	}
-	else 
-		DBG_PRINTF("err:%d\r\n",sta);
-
-	//myfree(SRAMEX,buf);	//释放内存	   
-}
-
-//测试SD卡的写入(慎用,最好写全是0XFF的扇区,否则可能损坏SD卡.)
-//从secaddr地址开始,写入seccnt个扇区的数据
-//secaddr:扇区地址
-//seccnt:扇区数
-void sd_test_write(uint32_t secaddr, uint32_t seccnt)
-{
-	uint32_t i;
-	uint8_t *buf; 
-	uint8_t sta = 0; 
-	
-	buf = heap_alloc(seccnt*512, 0);	//申请内存
-	
-	for (i = 0; i < seccnt*512; i++) 
-		buf[i]=i*3; 		//初始化写入的数据,是3的倍数.
-	sta = hal_sdmmc_write_disk(buf,secaddr,seccnt);		//从secaddr扇区开始写入seccnt个扇区内容
-
-	if (sta == 0) 
-		DBG_PRINTF("Write over!\r\n");		  
-    else 
-		DBG_PRINTF("err:%d\r\n",sta);
-	
-	//myfree(SRAMEX,buf);					//释放内存	   
-}
 
 void sd_test(void)
 {
@@ -420,11 +371,66 @@ void sd_test(void)
 
     }
 }
-
-
 ////////////////////////////////////////////////////////////////////////////////////////
 
 
+
+//SD测试//////////////////////////////////////////////////////////////////////////////
+void fatfs_test(void)
+{
+	uint32_t total,free;
+	uint8_t t=0;	
+	uint8_t res=0;	
+	
+	point_color = COLOR_RED; 
+	
+	hal_lcd_show_string(30,50,200,16,16,"Apollo STM32F4/F7"); 
+	hal_lcd_show_string(30,70,200,16,16,"FATFS TEST");	
+	hal_lcd_show_string(30,90,200,16,16,"ATOM@ALIENTEK");
+	hal_lcd_show_string(30,110,200,16,16,"2016/7/15");	 	 
+	hal_lcd_show_string(30,130,200,16,16,"Use USMART for test");
+	
+ 	while(hal_sdmmc_init())//检测不到SD卡
+	{
+		hal_lcd_show_string(30,150,200,16,16,"SD Card Error!");
+		delay_ms(500);					
+		hal_lcd_show_string(30,150,200,16,16,"Please Check! ");
+		delay_ms(500);
+		hal_led_toggle(0);
+	}
+	
+ 	exfuns_init();							//为fatfs相关变量申请内存	
+ 	
+  	f_mount(fs[0],"0:",1); 					//挂载SD卡 
+  	
+	hal_lcd_fill(30,150,240,150+16, COLOR_WHITE);		//清除显示		
+	
+	while(exf_getfree("0:",&total,&free))	//得到SD卡的总容量和剩余容量
+	{
+		hal_lcd_show_string(30,150,200,16,16,"SD Card Fatfs Error!");
+		delay_ms(200);
+		hal_lcd_fill(30,150,240,150+16,COLOR_WHITE);	//清除显示			  
+		delay_ms(200);
+		hal_led_toggle(0);
+	}	
+	
+ 	point_color = COLOR_BLUE;//设置字体为蓝色	   
+ 	
+	hal_lcd_show_string(30,150,200,16,16,"FATFS OK!");	 
+	hal_lcd_show_string(30,170,200,16,16,"SD Total Size:     MB");	 
+	hal_lcd_show_string(30,190,200,16,16,"SD  Free Size:     MB"); 	    
+ 	hal_lcd_show_num(30+8*14,170,total>>10,5,16);	//显示SD卡总容量 MB
+ 	hal_lcd_show_num(30+8*14,190,free>>10,5,16);     //显示SD卡剩余容量 MB		
+ 	
+	while(1)
+	{
+		t++; 
+		delay_ms(200);		 			   
+		hal_led_toggle(0);
+	} 
+
+}
+////////////////////////////////////////////////////////////////////////////////////////
 
 OSEL_DECLARE_TASK(TEST_TASK, param)
 {
@@ -433,7 +439,7 @@ OSEL_DECLARE_TASK(TEST_TASK, param)
 
 	DBG_TRACE("TEST_TASK!\r\n");
 	
-
+	fatfs_test();
 }
 
 

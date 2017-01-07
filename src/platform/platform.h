@@ -65,4 +65,6 @@ typedef void				(*fppv_t)(void *);   /* function pointer void and parameter void
 #include <memory.h>
 #include <queue.h>
 
+#include <exfuns.h>
+
 #endif
