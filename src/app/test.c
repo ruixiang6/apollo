@@ -287,6 +287,66 @@ void video_test(void)
 ////////////////////////////////////////////////////////////////////////////////////////
 
 
+//SPIFLASH测试//////////////////////////////////////////////////////////////////////////////
+const uint8_t SF_TEXT_Buffer[]={"Apo STM32F7 QSPI TETT HAHA"};
+#define SFSIZE sizeof(SF_TEXT_Buffer)
+
+void spi_flash_test(void)
+{
+	uint8_t key;
+	uint16_t i=0;
+	uint8_t datatemp[SFSIZE];
+	uint32_t FLASH_SIZE;
+
+	hal_spi_flash_init();
+	
+	point_color = COLOR_RED; 
+	
+	hal_lcd_show_string(30,50,200,16,16,"Apollo STM32F4/F7 hahahahahahahahaaha"); 
+    
+	hal_lcd_show_string(30,70,200,16,16,"QSPI TEST");	
+	hal_lcd_show_string(30,90,200,16,16,"ATOM@ALIENTEK");
+	hal_lcd_show_string(30,110,200,16,16,"2016/7/12");	 		
+	hal_lcd_show_string(30,130,200,16,16,"KEY1:Write  KEY0:Read");	//显示提示信息		
+	while(hal_spi_flash_readid()!=W25Q256)								//检测不到W25Q256
+	{
+		hal_lcd_show_string(30,150,200,16,16,"QSPI Check Failed!");
+		delay_ms(500);
+		hal_lcd_show_string(30,150,200,16,16,"Please Check!        ");
+		delay_ms(500);
+		hal_led_toggle(0);
+	}
+	hal_lcd_show_string(30,150,200,16,16,"QSPI Ready!"); 
+	FLASH_SIZE=32*1024*1024;	//FLASH 大小为32M字节
+  	point_color = COLOR_BLUE;			//设置字体为蓝色	
+  	
+	while(1)
+	{
+		key = hal_key_scan(0);
+		if(key==KEY1_PRES)//KEY1按下,写入W25Q128
+		{
+			hal_lcd_fill(0,170,239,319,COLOR_WHITE);//清除半屏    
+ 			hal_lcd_show_string(30,170,200,16,16,"Start Write QSPI....");
+			hal_spi_flash_write((u8*)SF_TEXT_Buffer,FLASH_SIZE-100,SFSIZE);		//从倒数第100个地址处开始,写入SIZE长度的数据
+			hal_lcd_show_string(30,170,200,16,16,"QSPI Write Finished!");	//提示传送完成
+		}
+		if(key==KEY0_PRES)//KEY0按下,读取字符串并显示
+		{
+ 			hal_lcd_show_string(30,170,200,16,16,"Start Read QSPI.... ");
+			hal_spi_flash_read(datatemp,FLASH_SIZE-100,SFSIZE);					//从倒数第100个地址处开始,读出SIZE个字节
+			hal_lcd_show_string(30,170,200,16,16,"The Data Readed Is:   ");	//提示传送完成
+			hal_lcd_show_string(30,190,200,16,16,datatemp);					//显示读到的字符串
+		} 
+		i++;
+		delay_ms(10);
+		if(i==20)
+		{
+			hal_led_toggle(0);
+			i=0;
+		}		   
+	}	   	
+}
+////////////////////////////////////////////////////////////////////////////////////////
 
 
 //SD测试//////////////////////////////////////////////////////////////////////////////
@@ -375,7 +435,7 @@ void sd_test(void)
 
 
 
-//SD测试//////////////////////////////////////////////////////////////////////////////
+//FatFs文件系统测试//////////////////////////////////////////////////////////////////////////////
 void fatfs_test(void)
 {
 	uint32_t total,free;
@@ -432,14 +492,258 @@ void fatfs_test(void)
 }
 ////////////////////////////////////////////////////////////////////////////////////////
 
+
+
+//text测试//////////////////////////////////////////////////////////////////////////////
+void text_test(void)
+{
+	u32 fontcnt;		  
+	u8 i,j;
+	u8 fontx[2];                    //gbk码
+	u8 key,t;	
+
+	  exfuns_init();				  //为fatfs相关变量申请内存  
+	  f_mount(fs[0],"0:",1);		  //挂载SD卡 
+	  f_mount(fs[1],"1:",1);		  //挂载SPI FLASH.
+	  while(font_init())			  //检查字库
+	  {
+	UPD:	
+		  hal_lcd_clear(COLOR_WHITE); 		  //清屏
+		  point_color = COLOR_RED; 
+		  
+		  hal_lcd_show_string(30,50,200,16,16,"Apollo STM32F4/F7");
+		  while(hal_sdmmc_init())			  //检测SD卡
+		  {
+			  hal_lcd_show_string(30,70,200,16,16,"SD Card Failed!");
+			  delay_ms(200);
+			  hal_lcd_fill(30,70,200+30,70+16,COLOR_WHITE);
+			  delay_ms(200);		  
+		   }														  
+		  hal_lcd_show_string(30,70,200,16,16,"SD Card OK");
+		  hal_lcd_show_string(30,90,200,16,16,"Font Updating...");
+		  key=update_font(20,110,16,"0:");//更新字库
+		  while(key)//更新失败		  
+		  { 	  
+			   hal_lcd_show_string(30,110,200,16,16,"Font Update Failed!");
+			   delay_ms(200);
+			   hal_lcd_fill(20,110,200+20,110+16,COLOR_WHITE);
+			   delay_ms(200);			 
+		  } 		
+		  hal_lcd_show_string(30,110,200,16,16,"Font Update Success!   ");
+		  delay_ms(1500); 
+		  
+		  hal_lcd_clear(COLOR_WHITE); 		  //清屏
+		  		 
+	  } 
+	  point_color = COLOR_RED; 	 
+	  Show_Str(30,30,200,16,"阿波罗STM32F4/F7开发板",16,0); 					   
+	  Show_Str(30,50,200,16,"GBK字库测试程序",16,0);					   
+	  Show_Str(30,70,200,16,"正点原子@ALIENTEK",16,0);						   
+	  Show_Str(30,90,200,16,"2016年7月15日",16,0);
+	  Show_Str(30,110,200,16,"按KEY0,更新字库",16,0);
+	 point_color = COLOR_BLUE;  
+	  Show_Str(30,130,200,16,"内码高字节:",16,0);					   
+	  Show_Str(30,150,200,16,"内码低字节:",16,0);					   
+	  Show_Str(30,170,200,16,"汉字计数器:",16,0);
+	
+	  Show_Str(30,200,200,32,"对应汉字为:",32,0); 
+	  Show_Str(30,232,200,24,"对应汉字为:",24,0); 
+	  Show_Str(30,256,200,16,"对应汉字(16*16)为:",16,0);		   
+	  Show_Str(30,272,200,12,"对应汉字(12*12)为:",12,0);		   
+	  while(1)
+	  {
+		  fontcnt=0;
+		  for(i=0x81;i<0xff;i++)
+		  { 	  
+			  fontx[0]=i;
+			  hal_lcd_show_num(118,150,i,3,16);		  //显示内码高字节	  
+			  for(j=0x40;j<0xfe;j++)
+			  {
+				  if(j==0x7f)continue;
+				  fontcnt++;
+				  hal_lcd_show_num(118,150,j,3,16);	  //显示内码低字节	   
+				  hal_lcd_show_num(118,170,fontcnt,5,16);//汉字计数显示	   
+				  fontx[1]=j;
+				  Show_Font(30+176,200,fontx,32,0);
+				  Show_Font(30+132,232,fontx,24,0); 	
+				  Show_Font(30+144,256,fontx,16,0); 				   
+				  Show_Font(30+108,272,fontx,12,0); 				   
+				  t=200;
+				  while(t--)//延时,同时扫描按键
+				  {
+					  delay_ms(1);
+					  key=hal_key_scan(0);
+					  if(key==KEY0_PRES)goto UPD;
+				  }
+				  hal_led_toggle(0);
+			  }   
+		  }   
+	  } 
+
+}
+////////////////////////////////////////////////////////////////////////////////////////
+
+//picture测试//////////////////////////////////////////////////////////////////////////////
+//得到path路径下,目标文件的总个数
+//path:路径		    
+//返回值:总有效文件数
+u16 pic_get_tnum(u8 *path)
+{	  
+	u8 res;
+	u16 rval=0;
+ 	DIR tdir;	 		//临时目录
+	FILINFO *tfileinfo;	//临时文件信息	    			     
+	tfileinfo=(FILINFO*)heap_alloc(sizeof(FILINFO),1);//申请内存
+    res=f_opendir(&tdir,(const TCHAR*)path); 	//打开目录 
+	if(res==FR_OK&&tfileinfo)
+	{
+		while(1)//查询总的有效文件数
+		{
+	        res=f_readdir(&tdir,tfileinfo);       		//读取目录下的一个文件  	 
+	        if(res!=FR_OK||tfileinfo->fname[0]==0)break;//错误了/到末尾了,退出	 		 
+			res=f_typetell((u8*)tfileinfo->fname);
+			if((res&0XF0)==0X50)//取高四位,看看是不是图片文件	
+			{
+				rval++;//有效文件数增加1
+			}	    
+		}  
+	}  
+	//myfree(SRAMIN,tfileinfo);//释放内存
+	return rval;
+}
+
+void picture_test(void)
+{
+	uint8_t i = 0;
+	u8 res;
+ 	DIR picdir;	 		//图片目录
+	FILINFO *picfileinfo;//文件信息 
+	u8 *pname[5];			//带路径的文件名
+	u16 totpicnum; 		//图片文件总数
+	u16 curindex;		//图片当前索引
+	u8 key;				//键值
+	u8 pause=0;			//暂停标记
+	u8 t;
+	u16 temp;
+	u32 *picoffsettbl;	//图片文件offset索引表 
+	uint8_t image_file_num = 0;
+
+	exfuns_init();				    //为fatfs相关变量申请内存  
+ 	f_mount(fs[0],"0:",1); 		    //挂载SD卡 
+ 	f_mount(fs[1],"1:",1); 		    //挂载FLASH.
+	 point_color = COLOR_RED; 	   
+	while(font_init()) 		        //检查字库
+	{	    
+		hal_lcd_show_string(30,50,200,16,16,"Font Error!");
+		delay_ms(200);				  
+		hal_lcd_fill(30,50,240,66,COLOR_WHITE);//清除显示	     
+		delay_ms(200);				  
+	}  	 
+ 	Show_Str(30,50,200,16,"阿波罗STM32F4/F7开发板",16,0);				    	 
+	Show_Str(30,70,200,16,"图片显示程序",16,0);				    	 
+	Show_Str(30,90,200,16,"KEY0:NEXT KEY2:PREV",16,0);				    	 
+	Show_Str(30,110,200,16,"KEY_UP:PAUSE",16,0);				    	 
+	Show_Str(30,130,200,16,"正点原子@ALIENTEK",16,0);				    	 
+	Show_Str(30,150,200,16,"2016年7月15日",16,0);
+ 	while(f_opendir(&picdir,"0:/PICTURE"))//打开图片文件夹
+ 	{	    
+		Show_Str(30,170,240,16,"PICTURE文件夹错误!",16,0);
+		delay_ms(200);				  
+		hal_lcd_fill(30,170,240,186,COLOR_WHITE);//清除显示	     
+		delay_ms(200);				  
+	}  
+	totpicnum=pic_get_tnum("0:/PICTURE"); //得到总有效文件数
+  	while(totpicnum==NULL)//图片文件为0		
+ 	{	    
+		Show_Str(30,170,240,16,"没有图片文件!",16,0);
+		delay_ms(200);				  
+		hal_lcd_fill(30,170,240,186,COLOR_WHITE);//清除显示	     
+		delay_ms(200);				  
+	} 
+
+	
+	picfileinfo=(FILINFO*)heap_alloc(sizeof(FILINFO),1);	//申请内存
+
+	for (i = 0; i < 5; i++)
+	{
+	 	pname[i]=heap_alloc(_MAX_LFN*2+1,1);					//为带路径的文件名分配内存
+	}
+ 	picoffsettbl=heap_alloc(4*totpicnum,1);					//申请4*totpicnum个字节的内存,用于存放图片索引
+ 	while(!picfileinfo||!pname[0]||!picoffsettbl)					//内存分配出错
+ 	{	    	
+		Show_Str(30,170,240,16,"内存分配失败!",16,0);
+		delay_ms(200);				  
+		hal_lcd_fill(30,170,240,186,COLOR_WHITE);//清除显示	     
+		delay_ms(200);				  
+	}  	
+	//记录索引
+    res=f_opendir(&picdir,"0:/PICTURE"); //打开目录
+	if(res==FR_OK)
+	{
+		curindex=0;//当前索引为0
+		while(1)//全部查询一遍
+		{
+			temp=picdir.dptr;								//记录当前dptr偏移
+	        res=f_readdir(&picdir,picfileinfo);       		//读取目录下的一个文件
+	        if(res!=FR_OK||picfileinfo->fname[0]==0)break;	//错误了/到末尾了,退出	 	 
+			res=f_typetell((u8*)picfileinfo->fname);	
+			if((res&0XF0)==0X50)//取高四位,看看是不是图片文件	
+			{
+				picoffsettbl[curindex]=temp;//记录索引
+				curindex++;
+			}	    
+		} 
+	} 
+
+	image_file_num = curindex;
+	
+	Show_Str(30,170,240,16,"开始显示...",16,0); 
+	delay_ms(1500);
+	piclib_init();										//初始化画图	   	   
+	curindex=0;											//从0开始显示
+   	res=f_opendir(&picdir,(const TCHAR*)"0:/PICTURE"); 	//打开目录
+	for (i = 0; i < image_file_num; i++)
+	{
+		dir_sdi(&picdir,picoffsettbl[i]);			//改变当前目录索引	   
+        res=f_readdir(&picdir,picfileinfo);       		//读取目录下的一个文件
+        if(res!=FR_OK||picfileinfo->fname[0]==0)break;	//错误了/到末尾了,退出
+		strcpy((char*)pname[i],"0:/PICTURE/");				//复制路径(目录)
+		strcat((char*)pname[i],(const char*)picfileinfo->fname);//将文件名接在后面		
+	}
+
+	
+	while(res==FR_OK)//打开成功
+	{	
+ 		hal_lcd_clear(COLOR_BLACK);
+ 		ai_load_picfile(pname[curindex],0,0,lcddev.width,lcddev.height,0);//显示图片    
+ 		//ai_load_picfile(pname[curindex],0,0,lcddev.width,lcddev.height,1);//显示图片  
+		//Show_Str(2,2,lcddev.width,16,pname[curindex],16,1); 				//显示图片名字
+		
+		curindex++;		   	
+		if(curindex>=image_file_num)
+		{
+			curindex=0;//到末尾的时候,自动从头开始
+			//hal_lcd_clear(COLOR_BLUE);
+		}
+		
+		delay_ms(200);
+					    		
+	} 	
+
+	return;
+
+}
+////////////////////////////////////////////////////////////////////////////////////////
+
+
 OSEL_DECLARE_TASK(TEST_TASK, param)
 {
     (void)param;
 	osel_event_res_t res;
 
 	DBG_TRACE("TEST_TASK!\r\n");
-	
-	fatfs_test();
+
+	picture_test();
 }
 
 

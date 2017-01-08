@@ -78,7 +78,10 @@ typedef struct _lcd_dev_t {
 
 
 extern uint32_t point_color;
+extern uint32_t back_color;
+
 extern lcd_dev_t lcddev;
+extern ltdc_dev_t lcdltdc;
 
 
 extern void hal_lcd_led(uint8_t status);

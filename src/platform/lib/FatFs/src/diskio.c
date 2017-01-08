@@ -51,10 +51,11 @@ DSTATUS disk_initialize (
 		case SD_CARD:		//SD卡
 			res=hal_sdmmc_init();	//SD卡初始化 
   			break;
-			/*
+			
 		case EX_FLASH:		//外部flash
-			W25QXX_Init();  //W25QXX初始化
+			hal_spi_flash_init();  //W25QXX初始化
  			break;
+			/*
 		case EX_NAND:		//外部NAND
 			res=FTL_Init();	//NAND初始化
  			break;
@@ -90,16 +91,17 @@ DRESULT disk_read (
 				//printf("sd rd error:%d\r\n",res);
 			}
 			break;
-			/*
+			
 		case EX_FLASH://外部flash
 			for(;count>0;count--)
 			{
-				W25QXX_Read(buff,sector*FLASH_SECTOR_SIZE,FLASH_SECTOR_SIZE);
+				hal_spi_flash_read(buff,sector*FLASH_SECTOR_SIZE,FLASH_SECTOR_SIZE);
 				sector++;
 				buff+=FLASH_SECTOR_SIZE;
 			}
 			res=0;
 			break;
+			/*
 		case EX_NAND:		//外部NAND
 			res=FTL_ReadSectors(buff,sector,512,count);	//读取数据			
 			break;
@@ -136,16 +138,17 @@ DRESULT disk_write (
 				//printf("sd wr error:%d\r\n",res);
 			}
 			break;
-			/*
+			
 		case EX_FLASH://外部flash
 			for(;count>0;count--)
 			{										    
-				W25QXX_Write((u8*)buff,sector*FLASH_SECTOR_SIZE,FLASH_SECTOR_SIZE);
+				hal_spi_flash_write((u8*)buff,sector*FLASH_SECTOR_SIZE,FLASH_SECTOR_SIZE);
 				sector++;
 				buff+=FLASH_SECTOR_SIZE;
 			}
 			res=0;
 			break;
+			/*
 		case EX_NAND:		//外部NAND
 			res=FTL_WriteSectors((u8*)buff,sector,512,count);//写入数据
 			break;
@@ -192,7 +195,7 @@ DRESULT res;
 		        break;
 	    }
 	}
-	/*
+	
 	else if(pdrv==EX_FLASH)	//外部FLASH  
 	{
 	    switch(cmd)
@@ -217,6 +220,7 @@ DRESULT res;
 		        break;
 	    }
 	}
+	/*
 	else if(pdrv==EX_NAND)	//外部NAND FLASH
 	{
 	    switch(cmd)

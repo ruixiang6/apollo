@@ -418,7 +418,7 @@ static void hal_lcd_display_dir(uint8_t dir)
 //读取个某点的颜色值	 
 //x,y:坐标
 //返回值:此点的颜色
-static uint32_t hal_lcd_read_point(uint16_t x, uint16_t y)
+uint32_t hal_lcd_read_point(uint16_t x, uint16_t y)
 {
  	uint16_t r = 0, g = 0, b = 0;
 	
