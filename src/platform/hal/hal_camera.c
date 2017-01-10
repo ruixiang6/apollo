@@ -968,7 +968,7 @@ uint8_t OV5640_Init(void)
 	reg |= OV5640_RD_Reg(OV5640_CHIPIDL);	//∂¡»°ID µÕ∞ÀŒª
 	if (reg != OV5640_ID)
 	{
-		printf("ID:%d\r\n", reg);
+		DBG_PRINTF("ID:%d\r\n", reg);
 		return 1;
 	}  
 	OV5640_WR_Reg(0x3103, 0X11);	//system clock from pad, bit[1]

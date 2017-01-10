@@ -715,8 +715,8 @@ void picture_test(void)
 	while(res==FR_OK)//打开成功
 	{	
  		hal_lcd_clear(COLOR_BLACK);
- 		ai_load_picfile(pname[curindex],0,0,lcddev.width,lcddev.height,0);//显示图片    
- 		//ai_load_picfile(pname[curindex],0,0,lcddev.width,lcddev.height,1);//显示图片  
+ 		//ai_load_picfile(pname[curindex],0,0,lcddev.width,lcddev.height,0);//显示图片    
+ 		ai_load_picfile(pname[curindex],0,0,lcddev.width,lcddev.height,1);//显示图片  
 		//Show_Str(2,2,lcddev.width,16,pname[curindex],16,1); 				//显示图片名字
 		
 		curindex++;		   	
@@ -726,7 +726,7 @@ void picture_test(void)
 			//hal_lcd_clear(COLOR_BLUE);
 		}
 		
-		delay_ms(200);
+		delay_ms(500);
 					    		
 	} 	
 

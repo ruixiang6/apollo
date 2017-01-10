@@ -124,10 +124,12 @@
 #define  LIB_MEM_CFG_HEAP_PADDING_ALIGN     LIB_MEM_PADDING_ALIGN_NONE
 
 
-#define  LIB_MEM_CFG_HEAP_SIZE           1244160
+#define  LIB_MEM_CFG_HEAP_SIZE           12441600
 
 #if 1                                                           /* Remove this to have heap alloc at specified addr.    */
-#define  LIB_MEM_CFG_HEAP_BASE_ADDR         0xc0000000          /* Configure heap memory base address (see Note #2b).   */
+//#define  LIB_MEM_CFG_HEAP_BASE_ADDR         0xc0000000          /* Configure heap memory base address (see Note #2b).   */
+//前面2M用做显存
+#define  LIB_MEM_CFG_HEAP_BASE_ADDR         0XC0200000
 #endif
 
 

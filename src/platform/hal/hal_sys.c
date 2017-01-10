@@ -2,6 +2,7 @@
 #include "stm32f7xx_hal.h"
 
 #include "hal_sys.h"
+#include "platform.h"
 
 
 //使能CPU的L1-Cache
@@ -149,18 +150,18 @@ void NMI_Handler(void)
 
 void HardFault_Handler(void)
 {
-	while (1)
+	//while (1)
 	{
-
+		DBG_PRINTF("HardFault_Handler\r\n");
 	}
 }
 
 
 void MemManage_Handler(void)
 { 
-	printf("Mem Access Error!!\r\n"); 	//输出错误信息
+	DBG_PRINTF("Mem Access Error!!\r\n"); 	//输出错误信息
 	delay_ms(1000);	
-	printf("Soft Reseting...\r\n");		//提示软件重启
+	DBG_PRINTF("Soft Reseting...\r\n");		//提示软件重启
 	delay_ms(1000);	
 	NVIC_SystemReset();					//软复位
 }

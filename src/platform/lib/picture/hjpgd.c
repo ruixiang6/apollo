@@ -88,10 +88,13 @@ void jpeg_hdrover_callback(void)
 //pname:图片名字(带路径)
 //返回值:0,成功
 //    其他,失败
+
+u16* rgb565buf = NULL;
+
 u8 hjpgd_decode(u8* pname)
 {
 	FIL* ftemp; 
-	u16* rgb565buf;
+	//u16* rgb565buf;
 	vu32 timecnt=0;
 	u8 fileover=0;
 	u8 i=0;
@@ -106,7 +109,10 @@ u8 hjpgd_decode(u8* pname)
 		//myfree(SRAMIN,ftemp);						//释放内存
 		return 2;
 	} 
-	rgb565buf=heap_alloc(800*480*2,1);			//申请整帧内存
+
+	if (!rgb565buf)
+		rgb565buf=heap_alloc(800*480*2,1);			//申请整帧内存
+	//rgb565buf=heap_alloc(1200*800*2,1);
 	JPEG_Decode_Init(&hjpgd);						//初始化硬件JPEG解码器
 	for(i=0;i<JPEG_DMA_INBUF_NB;i++)
 	{
